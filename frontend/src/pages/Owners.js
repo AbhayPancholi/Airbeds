@@ -66,11 +66,17 @@ export default function Owners() {
     setSaving(true);
 
     try {
+      // Clean data - convert empty strings to null for optional fields
+      const cleanData = {
+        ...formData,
+        email: formData.email?.trim() || null
+      };
+      
       if (selectedOwner) {
-        await ownersAPI.update(selectedOwner.id, formData);
+        await ownersAPI.update(selectedOwner.id, cleanData);
         toast.success('Owner updated successfully');
       } else {
-        await ownersAPI.create(formData);
+        await ownersAPI.create(cleanData);
         toast.success('Owner added successfully');
       }
       setDialogOpen(false);
