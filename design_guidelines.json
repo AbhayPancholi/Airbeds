@@ -1,0 +1,169 @@
+{
+  "identity": {
+    "name": "EstateCommand",
+    "persona": "The Architect",
+    "vibe": "Precision, Clarity, Authority",
+    "description": "A high-density, professional dashboard for property brokers who value data over decoration. Every pixel serves a purpose."
+  },
+  "typography": {
+    "font_family": {
+      "heading": "Inter, sans-serif",
+      "body": "Inter, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-3xl font-bold tracking-tight lg:text-4xl",
+      "h2": "text-2xl font-semibold tracking-tight",
+      "h3": "text-xl font-semibold tracking-tight",
+      "p": "text-sm text-muted-foreground leading-relaxed",
+      "small": "text-xs font-medium uppercase tracking-wider text-muted-foreground"
+    }
+  },
+  "colors": {
+    "theme": "light",
+    "palette": {
+      "primary": {
+        "hex": "#0F172A",
+        "tailwind": "bg-slate-900 text-white",
+        "usage": "Primary buttons, active states, sidebar active items"
+      },
+      "secondary": {
+        "hex": "#F1F5F9",
+        "tailwind": "bg-slate-100 text-slate-900",
+        "usage": "Secondary buttons, backgrounds, hover states"
+      },
+      "accent": {
+        "hex": "#0EA5E9",
+        "tailwind": "text-sky-500",
+        "usage": "Links, active icons, progress bars"
+      },
+      "destructive": {
+        "hex": "#EF4444",
+        "tailwind": "bg-red-500 text-white",
+        "usage": "Delete actions, overdue payments"
+      },
+      "success": {
+        "hex": "#10B981",
+        "tailwind": "text-emerald-600 bg-emerald-50",
+        "usage": "Paid status, active agreements"
+      },
+      "background": {
+        "default": "#FFFFFF",
+        "subtle": "#F8FAFC"
+      },
+      "border": {
+        "default": "#E2E8F0",
+        "focus": "#94A3B8"
+      }
+    }
+  },
+  "layout_strategy": {
+    "dashboard_grid": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6",
+    "form_layout": "grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl",
+    "sidebar": {
+      "width": "w-64",
+      "collapsed_width": "w-16",
+      "style": "fixed left-0 top-0 h-full border-r bg-background z-50"
+    },
+    "main_content": "pl-64 transition-all duration-300",
+    "spacing": {
+      "page_padding": "p-8",
+      "card_padding": "p-6",
+      "section_gap": "gap-8"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2",
+      "secondary": "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-9 px-4 py-2",
+      "ghost": "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2",
+      "destructive": "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 h-9 px-4 py-2"
+    },
+    "cards": {
+      "base": "rounded-xl border bg-card text-card-foreground shadow-sm",
+      "header": "flex flex-col space-y-1.5 p-6",
+      "content": "p-6 pt-0",
+      "stats_card": "rounded-xl border bg-card text-card-foreground shadow-sm p-6 flex flex-row items-center justify-between space-y-0 pb-2"
+    },
+    "inputs": {
+      "base": "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+    },
+    "tables": {
+      "wrapper": "w-full overflow-auto rounded-md border",
+      "header": "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+      "row": "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+      "cell": "p-4 align-middle [&:has([role=checkbox])]:pr-0"
+    },
+    "status_badges": {
+      "active": "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-emerald-100 text-emerald-700",
+      "pending": "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-amber-100 text-amber-700",
+      "inactive": "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-slate-100 text-slate-700",
+      "error": "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-red-100 text-red-700"
+    }
+  },
+  "assets": {
+    "images": [
+      {
+        "category": "property",
+        "url": "https://images.unsplash.com/photo-1666282167632-c613fbeb163c",
+        "description": "Modern living room, used for property thumbnails or dashboard placeholders"
+      },
+      {
+        "category": "property",
+        "url": "https://images.pexels.com/photos/18435276/pexels-photo-18435276.jpeg",
+        "description": "Building exterior, used for property main images"
+      },
+      {
+        "category": "avatar",
+        "url": "https://images.pexels.com/photos/33871730/pexels-photo-33871730.jpeg",
+        "description": "Professional woman, used for user/tenant avatars"
+      },
+      {
+        "category": "avatar",
+        "url": "https://images.pexels.com/photos/27603571/pexels-photo-27603571.jpeg",
+        "description": "Portrait woman, used for owner/tenant avatars"
+      }
+    ],
+    "icons": "Use lucide-react for all icons. Common icons: LayoutDashboard, Users, Home, FileText, CreditCard, Receipt, LogOut, Settings, Plus, Search, Filter, Trash2, Edit, ChevronDown, Check"
+  },
+  "visual_enhancers": {
+    "shadows": "shadow-sm hover:shadow-md transition-shadow duration-200",
+    "borders": "border border-slate-200",
+    "radius": "rounded-lg",
+    "glass": "bg-white/80 backdrop-blur-sm border-white/20 (Use sparingly, mainly for sticky headers)"
+  },
+  "accessibility": {
+    "contrast": "Ensure all text meets WCAG AA standards. Use slate-500 or darker on white backgrounds.",
+    "focus_states": "All interactive elements must have visible focus rings (focus-visible:ring-1).",
+    "aria": "Use aria-labels on icon-only buttons."
+  },
+  "instructions_to_main_agent": [
+    "Use standard HTML/JS for logic but style HEAVILY with Tailwind classes defined above.",
+    "Do not create .tsx files, use .js.",
+    "For the sidebar, create a Layout component that wraps the pages.",
+    "Use Recharts for the dashboard charts (BarChart for expenses, PieChart for occupancy).",
+    "Implement 'sonner' for toast notifications on success/error actions.",
+    "For file uploads (Police Verification), use a drag-and-drop zone style with dashed border.",
+    "Authentication: Store JWT in localStorage. Create a PrivateRoute component to protect admin routes.",
+    "Use axios for API calls. Create a centralized api instance with interceptors for JWT injection.",
+    "Mock data if backend is not ready, but structure it to match expected MongoDB schemas."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories = main agent will use placeholder text which is FORBIDDEN",
+    "Prioritize using pre-existing components from src/components/ui when applicable",
+    "Components MUST use named exports (export const ComponentName = ...)",
+    "Pages MUST use default exports (export default function PageName() {...})",
+    "Use sonner for toasts"
+  ]
+}
