@@ -78,7 +78,10 @@ export default function Owners() {
       setFormData(initialFormState);
       fetchOwners();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to save owner');
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Failed to save owner';
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }

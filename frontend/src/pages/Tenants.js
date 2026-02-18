@@ -100,7 +100,10 @@ export default function Tenants() {
       setFormData(initialFormState);
       fetchTenants();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to save tenant');
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Failed to save tenant';
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }

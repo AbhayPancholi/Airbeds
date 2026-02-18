@@ -102,7 +102,10 @@ export default function PoliceVerification() {
       setFormData(initialFormState);
       fetchVerifications();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to save verification');
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Failed to save verification';
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }

@@ -125,7 +125,10 @@ export default function Expenses() {
       fetchExpenses();
       if (filterMonth) fetchMonthlyTotal();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to save expense');
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Failed to save expense';
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }

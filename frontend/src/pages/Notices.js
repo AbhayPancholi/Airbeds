@@ -84,7 +84,10 @@ export default function Notices() {
       setFormData(initialFormState);
       fetchNotices();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to save notice');
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Failed to save notice';
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
