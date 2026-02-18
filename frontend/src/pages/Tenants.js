@@ -85,7 +85,8 @@ export default function Tenants() {
       const data = {
         ...formData,
         deposit_amount: parseFloat(formData.deposit_amount),
-        monthly_rent: parseFloat(formData.monthly_rent)
+        monthly_rent: parseFloat(formData.monthly_rent),
+        email: formData.email?.trim() || null
       };
 
       if (selectedTenant) {
