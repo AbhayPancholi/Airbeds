@@ -11,6 +11,8 @@ import PoliceVerification from './pages/PoliceVerification';
 import Payments from './pages/Payments';
 import Expenses from './pages/Expenses';
 import Notices from './pages/Notices';
+import NoticeForm from './pages/NoticeForm';
+import Register from './pages/Register';
 import './App.css';
 
 function App() {
@@ -27,6 +29,8 @@ function App() {
           <Route path="/payments" element={<PrivateRoute><Payments /></PrivateRoute>} />
           <Route path="/expenses" element={<PrivateRoute><Expenses /></PrivateRoute>} />
           <Route path="/notices" element={<PrivateRoute><Notices /></PrivateRoute>} />
+          <Route path="/register/:token" element={<Register />} />
+          <Route path="/notice" element={<NoticeForm />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL;
+const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,
@@ -113,6 +113,24 @@ export const expensesAPI = {
 // Dashboard API
 export const dashboardAPI = {
   getStats: () => api.get('/dashboard/stats'),
+};
+
+// Registration links (public form link): admin creates; public validates/submits
+export const registrationLinksAPI = {
+  createLink: () => api.post('/registration-links'),
+  listLinks: (params) => api.get('/registration-links', { params }),
+  validateToken: (token) => api.get(`/registration-links/validate/${token}`),
+  submitWithToken: (token, data) => api.post(`/registration-links/${token}/submit`, data),
+};
+
+// Notice form (fixed public link): status + submit; admin settings and one-time open
+export const noticeFormAPI = {
+  getStatus: () => api.get('/notice-form/status'),
+  submit: (data) => api.post('/notice-form/submit', data),
+  getTenantByCustomerId: (tenantId) => api.get('/notice-form/tenant-by-id', { params: { tenant_id: tenantId } }),
+  getSettings: () => api.get('/notice-form/settings'),
+  updateSettings: (data) => api.put('/notice-form/settings', data),
+  openSpecial: (hours) => api.post('/notice-form/open-special', { hours }),
 };
 
 export default api;

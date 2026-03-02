@@ -1,0 +1,50 @@
+2. Included Modules 
+The following modules are included in this development phase: 
+Module 1: Occupancy (Tenant Onboarding) Form 
+Purpose: 
+To collect and securely store tenant details digitally. 
+Functionality: 
+• Structured tenant information form 
+• Secure database storage 
+• Admin access to view and manage records 
+Module 2: Leave Notice Form 
+Purpose: 
+To allow tenants to submit leave notices digitally. 
+Functionality: 
+• Leave notice submission form 
+• Data storage in database 
+• Admin access for record management 
+Module 3: Owner Details Management 
+Purpose: 
+To store and manage property owner information centrally. 
+Functionality: 
+• Owner data storage 
+• Linking owners to respective flats 
+• Admin management access 
+Module 4: Agreement & Police Verification Module 
+Purpose: 
+To digitally manage tenant agreements and police verification records. 
+Functionality: 
+• Agreement records creation and storage 
+• Police verification record management 
+• Linking documents to respective tenants 
+• Secure document storage within the system 
+• Admin access for viewing and management 
+Module 5: Admin Panel 
+Purpose: 
+Central dashboard for managing all system data. 
+Functionality: 
+• View and manage tenant records 
+• Access leave notices 
+• Manage owner details 
+• Manage agreements and police verification records 
+• Owner payment tracking 
+• Expenses form for recording operational expenses 
+• Basic administrative controls 
+3. Financial Tracking (Basic Level) 
+The system will include: 
+• Owner payment tracking 
+• Manual entry of expense records 
+• Structured storage of financial data 
+• Expense and Savings calculation. 
+Note: This does not include advanced accounting automation or payment gateway integration.
