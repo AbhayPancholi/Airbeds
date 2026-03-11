@@ -10,12 +10,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from '../components/ui/badge';
 import { agreementsAPI, tenantsAPI, ownersAPI } from '../services/api';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, FileText, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, Eye, Download } from 'lucide-react';
 import { format } from 'date-fns';
 
+const today = format(new Date(), 'yyyy-MM-dd');
 const initialFormState = {
   tenant_id: '',
   owner_id: '',
+  flat_index: 0,
+  agreement_date: today,
   start_date: '',
   end_date: '',
   rent_amount: '',
@@ -34,12 +37,25 @@ export default function Agreements() {
   const [selectedAgreement, setSelectedAgreement] = useState(null);
   const [formData, setFormData] = useState(initialFormState);
   const [saving, setSaving] = useState(false);
+  const [selectedOwnerDetail, setSelectedOwnerDetail] = useState(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     fetchAgreements();
     fetchTenants();
     fetchOwners();
   }, [page]);
+
+  useEffect(() => {
+    if (formData.owner_id) {
+      ownersAPI.getById(formData.owner_id)
+        .then((res) => setSelectedOwnerDetail(res.data))
+        .catch(() => setSelectedOwnerDetail(null));
+    } else {
+      setSelectedOwnerDetail(null);
+      setFormData((prev) => ({ ...prev, flat_index: 0 }));
+    }
+  }, [formData.owner_id]);
 
   const fetchAgreements = async () => {
     try {
@@ -79,6 +95,60 @@ export default function Agreements() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const downloadDocument = async (formatType) => {
+    if (!formData.owner_id || !formData.tenant_id) {
+      toast.error('Please select Owner and Tenant');
+      return;
+    }
+    if (!formData.start_date || !formData.end_date) {
+      toast.error('Please enter Start date and End date');
+      return;
+    }
+    const rent = parseFloat(formData.rent_amount);
+    const deposit = parseFloat(formData.deposit_amount);
+    if (isNaN(rent) || isNaN(deposit) || rent < 0 || deposit < 0) {
+      toast.error('Please enter valid Rent and Deposit amounts');
+      return;
+    }
+    setDownloading(true);
+    try {
+      const res = await agreementsAPI.downloadDocument({
+        owner_id: formData.owner_id,
+        tenant_id: formData.tenant_id,
+        flat_index: parseInt(formData.flat_index, 10) || 0,
+        agreement_date: formData.agreement_date || today,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        monthly_rent: rent,
+        deposit_amount: deposit,
+        format: formatType,
+      });
+      const blob = res.data;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = formatType === 'pdf' ? 'Leave_and_Licence_Agreement.pdf' : 'Leave_and_Licence_Agreement.docx';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      toast.success(`Downloaded as ${formatType.toUpperCase()}`);
+    } catch (err) {
+      let msg = 'Download failed';
+      const d = err.response?.data;
+      if (d?.detail) msg = typeof d.detail === 'string' ? d.detail : JSON.stringify(d.detail);
+      else if (typeof d === 'string') msg = d;
+      else if (d && typeof d.text === 'function') {
+        d.text().then((t) => { try { const j = JSON.parse(t); toast.error(j.detail || msg); } catch { toast.error(msg); } });
+        setDownloading(false);
+        return;
+      }
+      toast.error(msg);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -116,6 +186,8 @@ export default function Agreements() {
     setFormData({
       tenant_id: agreement.tenant_id,
       owner_id: agreement.owner_id,
+      flat_index: 0,
+      agreement_date: agreement.start_date ? format(new Date(agreement.start_date), 'yyyy-MM-dd') : today,
       start_date: agreement.start_date,
       end_date: agreement.end_date,
       rent_amount: agreement.rent_amount.toString(),
@@ -266,7 +338,7 @@ export default function Agreements() {
                   </SelectTrigger>
                   <SelectContent>
                     {tenants.map((tenant) => (
-                      <SelectItem key={tenant.id} value={tenant.id}>{tenant.tenant_name} - Room {tenant.room_number}</SelectItem>
+                      <SelectItem key={tenant.id} value={tenant.id}>{tenant.tenant_name} - {tenant.flat_number || tenant.selected_room || tenant.contact_number || tenant.id}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -279,10 +351,31 @@ export default function Agreements() {
                   </SelectTrigger>
                   <SelectContent>
                     {owners.map((owner) => (
-                      <SelectItem key={owner.id} value={owner.id}>{owner.name} - {owner.flat_number}</SelectItem>
+                      <SelectItem key={owner.id} value={owner.id}>{owner.name} - {owner.flat_number || owner.property_address || owner.id}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              {selectedOwnerDetail?.flats?.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Flat (licensed premises) *</Label>
+                  <Select value={String(formData.flat_index)} onValueChange={(v) => handleSelectChange('flat_index', v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select flat" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {selectedOwnerDetail.flats.map((flat, idx) => {
+                        const addr = flat.address || {};
+                        const label = [addr.flat_no, addr.building_no, flat.bhk, flat.measurement_sqft ? `${flat.measurement_sqft} sq.ft` : ''].filter(Boolean).join(', ') || `Flat ${idx + 1}`;
+                        return <SelectItem key={idx} value={String(idx)}>{label}</SelectItem>;
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="agreement_date">Agreement date</Label>
+                <Input id="agreement_date" name="agreement_date" type="date" value={formData.agreement_date} onChange={handleInputChange} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -303,6 +396,15 @@ export default function Agreements() {
                   <Label htmlFor="deposit_amount">Deposit Amount *</Label>
                   <Input id="deposit_amount" name="deposit_amount" type="number" value={formData.deposit_amount} onChange={handleInputChange} required data-testid="deposit-amount-input" />
                 </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 pt-2 border-t">
+                <span className="text-sm text-slate-600 mr-2">Download filled agreement:</span>
+                <Button type="button" variant="outline" size="sm" onClick={() => downloadDocument('pdf')} disabled={downloading || !formData.owner_id || !formData.tenant_id || !formData.start_date || !formData.end_date || !selectedOwnerDetail?.flats?.length}>
+                  <Download className="h-4 w-4 mr-1" /> PDF
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => downloadDocument('docx')} disabled={downloading || !formData.owner_id || !formData.tenant_id || !formData.start_date || !formData.end_date || !selectedOwnerDetail?.flats?.length}>
+                  <Download className="h-4 w-4 mr-1" /> DOCX
+                </Button>
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>

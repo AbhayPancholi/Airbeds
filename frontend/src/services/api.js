@@ -78,6 +78,8 @@ export const agreementsAPI = {
   getById: (id) => api.get(`/agreements/${id}`),
   create: (data) => api.post('/agreements', data),
   update: (id, data) => api.put(`/agreements/${id}`, data),
+  /** Generate and download Leave and Licence document. Body: owner_id, tenant_id, flat_index, agreement_date, start_date, end_date, monthly_rent, deposit_amount, format: 'pdf' | 'docx'. Returns blob. */
+  downloadDocument: (body) => api.post('/agreements/download-document', body, { responseType: 'blob' }),
   delete: (id) => api.delete(`/agreements/${id}`),
 };
 

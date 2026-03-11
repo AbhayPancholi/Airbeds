@@ -24,3 +24,5 @@ numpy
 python-multipart
 jq
 typer
+python-docx
+reportlab

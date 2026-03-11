@@ -12,6 +12,7 @@ from app.services.owner_service import OwnerService
 from app.services.tenant_service import TenantService
 from app.services.notice_service import NoticeService
 from app.services.agreement_service import AgreementService
+from app.services.agreement_document_service import AgreementDocumentService
 from app.services.police_verification_service import PoliceVerificationService
 from app.services.payment_service import PaymentService
 from app.services.expense_service import ExpenseService
@@ -57,6 +58,11 @@ def get_notice_service(request: Request) -> NoticeService:
 def get_agreement_service(request: Request) -> AgreementService:
     db = request.app.state.db.get_database()
     return AgreementService(db)
+
+
+def get_agreement_document_service(request: Request) -> AgreementDocumentService:
+    db = request.app.state.db.get_database()
+    return AgreementDocumentService(db)
 
 
 def get_police_verification_service(request: Request) -> PoliceVerificationService:
