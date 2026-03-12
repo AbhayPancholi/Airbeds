@@ -26,18 +26,36 @@ class PaymentService:
         self,
         *,
         owner_id: Optional[str] = None,
+        party_type: Optional[str] = None,
+        party_id: Optional[str] = None,
         month: Optional[str] = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
         page: int = 1,
         limit: int = 10,
     ) -> List[PaymentResponse]:
         skip = (page - 1) * limit
-        return await self._repo.list(owner_id=owner_id, month=month, skip=skip, limit=limit)
+        return await self._repo.list(
+            owner_id=owner_id,
+            party_type=party_type,
+            party_id=party_id,
+            month=month,
+            from_date=from_date,
+            to_date=to_date,
+            skip=skip,
+            limit=limit,
+        )
 
-    async def monthly_total(self, month: Optional[str] = None) -> dict:
-        if not month:
+    async def monthly_total(
+        self,
+        month: Optional[str] = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
+    ) -> dict:
+        if not (from_date or to_date) and not month:
             month = get_current_month()
-        total = await self._repo.monthly_total(month)
-        return {"month": month, "total": total}
+        total = await self._repo.monthly_total(month=month, from_date=from_date, to_date=to_date)
+        return {"month": month, "from_date": from_date, "to_date": to_date, "total": total}
 
     async def update(self, payment_id: str, data: PaymentUpdate) -> PaymentResponse:
         updated = await self._repo.update(payment_id, data)

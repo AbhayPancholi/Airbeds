@@ -67,7 +67,7 @@ const initialFormState = () => ({
 
 function SectionTitle({ icon: Icon, title }) {
   return (
-    <h4 className="text-sm font-semibold text-slate-800 flex items-center gap-2 border-b border-slate-200 pb-2 mt-6 first:mt-0">
+    <h4 className="text-sm font-semibold text-slate-800 flex items-center gap-2 border-b-2 border-slate-800 pb-1 mt-6 first:mt-0">
       {Icon && <Icon className="h-4 w-4" />}
       {title}
     </h4>

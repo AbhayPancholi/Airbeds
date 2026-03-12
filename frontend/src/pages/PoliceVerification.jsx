@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { policeVerificationsAPI, tenantsAPI } from '../services/api';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Shield, Eye, Upload, FileImage, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Shield, Eye, Upload, FileImage, X, FileDown } from 'lucide-react';
 import { format } from 'date-fns';
 
 const initialFormState = {
@@ -48,6 +48,23 @@ export default function PoliceVerification() {
       toast.error('Failed to load verifications');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownload = async (verification) => {
+    try {
+      const res = await policeVerificationsAPI.downloadDocument(verification.id);
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `police_verification_${verification.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error('Failed to download police verification form');
     }
   };
 
@@ -218,13 +235,22 @@ export default function PoliceVerification() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => handleView(verification)}>
+                            <Button variant="ghost" size="icon" onClick={() => handleDownload(verification)} title="Download form">
+                              <FileDown className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleView(verification)} title="View details">
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleEdit(verification)}>
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(verification)} title="Edit">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(verification)} className="text-red-600 hover:text-red-700">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openDeleteDialog(verification)}
+                              className="text-red-600 hover:text-red-700"
+                              title="Delete"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -269,95 +295,6 @@ export default function PoliceVerification() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="employer_details">Employer Details *</Label>
-                <Input id="employer_details" name="employer_details" value={formData.employer_details} onChange={handleInputChange} required data-testid="employer-input" placeholder="Company name, designation, address" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="local_address">Local Address *</Label>
-                <Input id="local_address" name="local_address" value={formData.local_address} onChange={handleInputChange} required data-testid="local-address-input" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="emergency_contact">Emergency Contact *</Label>
-                <Input id="emergency_contact" name="emergency_contact" value={formData.emergency_contact} onChange={handleInputChange} required data-testid="emergency-contact-input" placeholder="Name and phone number" />
-              </div>
-              
-              {/* File Upload Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Photograph Upload */}
-                <div className="space-y-2">
-                  <Label>Photograph</Label>
-                  <input
-                    type="file"
-                    ref={photoInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={(e) => handleFileChange(e, 'photograph')}
-                  />
-                  {formData.photograph ? (
-                    <div className="relative border-2 border-dashed border-slate-200 rounded-lg p-4">
-                      <img src={formData.photograph} alt="Photograph" className="w-full h-32 object-cover rounded" />
-                      <button
-                        type="button"
-                        onClick={() => removeFile('photograph')}
-                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div
-                      onClick={() => photoInputRef.current?.click()}
-                      className="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center cursor-pointer hover:border-slate-400 transition-colors"
-                    >
-                      <Upload className="h-8 w-8 text-slate-400 mx-auto mb-2" />
-                      <p className="text-sm text-slate-500">Click to upload photograph</p>
-                      <p className="text-xs text-slate-400 mt-1">Max 5MB</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* ID Proof Upload */}
-                <div className="space-y-2">
-                  <Label>ID Proof</Label>
-                  <input
-                    type="file"
-                    ref={idProofInputRef}
-                    className="hidden"
-                    accept="image/*,.pdf"
-                    onChange={(e) => handleFileChange(e, 'id_proof')}
-                  />
-                  {formData.id_proof ? (
-                    <div className="relative border-2 border-dashed border-slate-200 rounded-lg p-4">
-                      {formData.id_proof.startsWith('data:image') ? (
-                        <img src={formData.id_proof} alt="ID Proof" className="w-full h-32 object-cover rounded" />
-                      ) : (
-                        <div className="flex items-center justify-center h-32">
-                          <FileImage className="h-12 w-12 text-slate-400" />
-                          <span className="ml-2 text-slate-600">Document uploaded</span>
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeFile('id_proof')}
-                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div
-                      onClick={() => idProofInputRef.current?.click()}
-                      className="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center cursor-pointer hover:border-slate-400 transition-colors"
-                    >
-                      <Upload className="h-8 w-8 text-slate-400 mx-auto mb-2" />
-                      <p className="text-sm text-slate-500">Click to upload ID proof</p>
-                      <p className="text-xs text-slate-400 mt-1">Max 5MB</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
                 <Button type="submit" disabled={saving} data-testid="save-verification-btn">

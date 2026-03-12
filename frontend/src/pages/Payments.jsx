@@ -7,15 +7,22 @@ import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '../components/ui/command';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Badge } from '../components/ui/badge';
-import { paymentsAPI, ownersAPI } from '../services/api';
+import { paymentsAPI, ownersAPI, tenantsAPI } from '../services/api';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, CreditCard, Filter } from 'lucide-react';
+import { Plus, Edit, Trash2, CreditCard, Filter, ChevronsUpDown } from 'lucide-react';
+import { cn } from '../lib/utils';
 import { format } from 'date-fns';
 
+const ALL_VALUE = '__all__';
+
 const initialFormState = {
-  owner_id: '',
+  party_type: 'owner',
+  party_id: '',
+  transaction_type: 'credit',
   month: '',
   amount_paid: '',
   payment_date: '',
@@ -37,36 +44,48 @@ const getMonthOptions = () => {
 export default function Payments() {
   const [payments, setPayments] = useState([]);
   const [owners, setOwners] = useState([]);
+  const [tenants, setTenants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [filterMonth, setFilterMonth] = useState('');
-  const [filterOwner, setFilterOwner] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [filterPartyType, setFilterPartyType] = useState(ALL_VALUE);
   const [monthlyTotal, setMonthlyTotal] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [formData, setFormData] = useState(initialFormState);
   const [saving, setSaving] = useState(false);
+  const [partyComboboxOpen, setPartyComboboxOpen] = useState(false);
 
   const monthOptions = getMonthOptions();
 
   useEffect(() => {
-    fetchPayments();
     fetchOwners();
-  }, [page, filterMonth, filterOwner]);
+    fetchTenants();
+  }, []);
 
   useEffect(() => {
-    if (filterMonth) {
+    fetchPayments();
+  }, [page, fromDate, toDate, filterPartyType]);
+
+  useEffect(() => {
+    if (fromDate || toDate) {
       fetchMonthlyTotal();
     }
-  }, [filterMonth]);
+  }, [fromDate, toDate]);
+
+  useEffect(() => {
+    if (!dialogOpen) setPartyComboboxOpen(false);
+  }, [dialogOpen]);
 
   const fetchPayments = async () => {
     try {
       const params = { page, limit: 10 };
-      if (filterMonth) params.month = filterMonth;
-      if (filterOwner) params.owner_id = filterOwner;
-      
+      if (fromDate) params.from_date = fromDate;
+      if (toDate) params.to_date = toDate;
+      if (filterPartyType && filterPartyType !== ALL_VALUE) params.party_type = filterPartyType;
+
       const response = await paymentsAPI.get(params);
       setPayments(response.data);
     } catch (error) {
@@ -79,15 +98,31 @@ export default function Payments() {
   const fetchOwners = async () => {
     try {
       const response = await ownersAPI.getAll();
-      setOwners(response.data);
+      setOwners(Array.isArray(response?.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to load owners');
+      setOwners([]);
     }
   };
 
+  const fetchTenants = async () => {
+    try {
+      const response = await tenantsAPI.getAll();
+      setTenants(Array.isArray(response?.data) ? response.data : []);
+    } catch (error) {
+      console.error('Failed to load tenants');
+      setTenants([]);
+    }
+  };
+
+  const getPartyDisplayName = (p) => (p?.name ?? p?.tenant_name ?? 'Unknown');
+
   const fetchMonthlyTotal = async () => {
     try {
-      const response = await paymentsAPI.getMonthlyTotal(filterMonth);
+      const response = await paymentsAPI.getMonthlyTotal({
+        from_date: fromDate || undefined,
+        to_date: toDate || undefined,
+      });
       setMonthlyTotal(response.data.total);
     } catch (error) {
       console.error('Failed to load monthly total');
@@ -100,8 +135,15 @@ export default function Payments() {
   };
 
   const handleSelectChange = (name, value) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === 'party_type') {
+      setFormData(prev => ({ ...prev, party_type: value, party_id: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
+
+  const partyOptions = (formData.party_type === 'owner' ? owners : tenants) ?? [];
+  const selectedParty = partyOptions.find((p) => p.id === formData.party_id);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,8 +151,13 @@ export default function Payments() {
 
     try {
       const data = {
-        ...formData,
-        amount_paid: parseFloat(formData.amount_paid)
+        party_type: formData.party_type,
+        party_id: formData.party_id,
+        transaction_type: formData.transaction_type,
+        month: formData.month,
+        amount_paid: parseFloat(formData.amount_paid),
+        payment_date: formData.payment_date,
+        notes: formData.notes || null,
       };
 
       if (selectedPayment) {
@@ -124,10 +171,10 @@ export default function Payments() {
       setSelectedPayment(null);
       setFormData(initialFormState);
       fetchPayments();
-      if (filterMonth) fetchMonthlyTotal();
+      if (fromDate || toDate) fetchMonthlyTotal();
     } catch (error) {
-      const errorMessage = typeof error.response?.data?.detail === 'string' 
-        ? error.response.data.detail 
+      const errorMessage = typeof error.response?.data?.detail === 'string'
+        ? error.response.data.detail
         : 'Failed to save payment';
       toast.error(errorMessage);
     } finally {
@@ -138,7 +185,9 @@ export default function Payments() {
   const handleEdit = (payment) => {
     setSelectedPayment(payment);
     setFormData({
-      owner_id: payment.owner_id,
+      party_type: payment.party_type || 'owner',
+      party_id: payment.party_id || payment.owner_id || '',
+      transaction_type: payment.transaction_type || 'credit',
       month: payment.month,
       amount_paid: payment.amount_paid.toString(),
       payment_date: payment.payment_date,
@@ -154,7 +203,7 @@ export default function Payments() {
       setDeleteDialogOpen(false);
       setSelectedPayment(null);
       fetchPayments();
-      if (filterMonth) fetchMonthlyTotal();
+      if (fromDate || toDate) fetchMonthlyTotal();
     } catch (error) {
       toast.error('Failed to delete payment');
     }
@@ -174,8 +223,9 @@ export default function Payments() {
   };
 
   const clearFilters = () => {
-    setFilterMonth('');
-    setFilterOwner('');
+    setFromDate('');
+    setToDate('');
+    setFilterPartyType(ALL_VALUE);
     setMonthlyTotal(0);
   };
 
@@ -185,8 +235,8 @@ export default function Payments() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Owner Payments</h1>
-            <p className="text-slate-500 mt-1">Track payments to property owners</p>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Payments</h1>
+            <p className="text-slate-500 mt-1">Track payments to owners and tenants</p>
           </div>
           <Button onClick={() => { setSelectedPayment(null); setFormData(initialFormState); setDialogOpen(true); }} data-testid="add-payment-btn">
             <Plus className="h-4 w-4 mr-2" />
@@ -199,28 +249,33 @@ export default function Payments() {
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row gap-4 items-end">
               <div className="flex-1">
-                <Label className="text-sm text-slate-500 mb-2 block">Filter by Month</Label>
-                <Select value={filterMonth} onValueChange={setFilterMonth}>
-                  <SelectTrigger data-testid="filter-month-select">
-                    <SelectValue placeholder="All months" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {monthOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm text-slate-500 mb-2 block">From Date</Label>
+                <Input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  data-testid="filter-from-date"
+                />
               </div>
               <div className="flex-1">
-                <Label className="text-sm text-slate-500 mb-2 block">Filter by Owner</Label>
-                <Select value={filterOwner} onValueChange={setFilterOwner}>
-                  <SelectTrigger data-testid="filter-owner-select">
-                    <SelectValue placeholder="All owners" />
+                <Label className="text-sm text-slate-500 mb-2 block">To Date</Label>
+                <Input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  data-testid="filter-to-date"
+                />
+              </div>
+              <div className="flex-1">
+                <Label className="text-sm text-slate-500 mb-2 block">Filter by Party Type</Label>
+                <Select value={filterPartyType} onValueChange={setFilterPartyType}>
+                  <SelectTrigger data-testid="filter-party-type-select">
+                    <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
-                    {owners.map((owner) => (
-                      <SelectItem key={owner.id} value={owner.id}>{owner.name}</SelectItem>
-                    ))}
+                    <SelectItem value={ALL_VALUE}>All</SelectItem>
+                    <SelectItem value="owner">Owner</SelectItem>
+                    <SelectItem value="tenant">Tenant</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -231,13 +286,13 @@ export default function Payments() {
           </CardContent>
         </Card>
 
-        {/* Monthly Total Card */}
-        {filterMonth && (
+        {/* Total Card */}
+        {(fromDate || toDate) && (
           <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-100 text-sm font-medium">Monthly Total</p>
+                  <p className="text-blue-100 text-sm font-medium">Total Payments (Selected Period)</p>
                   <p className="text-3xl font-bold mt-1">{formatCurrency(monthlyTotal)}</p>
                 </div>
                 <CreditCard className="h-10 w-10 text-blue-200" />
@@ -269,7 +324,9 @@ export default function Payments() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Owner</TableHead>
+                      <TableHead>Party</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Transaction</TableHead>
                       <TableHead>Month</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Payment Date</TableHead>
@@ -280,13 +337,23 @@ export default function Payments() {
                   <TableBody>
                     {payments.map((payment) => (
                       <TableRow key={payment.id} data-testid={`payment-row-${payment.id}`}>
-                        <TableCell className="font-medium">{payment.owner_name || '-'}</TableCell>
+                        <TableCell className="font-medium">{payment.party_name || payment.owner_name || '-'}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={payment.party_type === 'owner' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-purple-50 text-purple-700 border-purple-200'}>
+                            {payment.party_type === 'owner' ? 'Owner' : 'Tenant'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={payment.transaction_type === 'credit' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
+                            {payment.transaction_type === 'credit' ? 'Credited' : 'Debited'}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline">
                             {payment.month ? format(new Date(payment.month + '-01'), 'MMM yyyy') : '-'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="font-semibold text-emerald-600">{formatCurrency(payment.amount_paid)}</TableCell>
+                        <TableCell className={`font-semibold ${payment.transaction_type === 'credit' ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(payment.amount_paid)}</TableCell>
                         <TableCell>
                           {payment.payment_date ? format(new Date(payment.payment_date), 'dd MMM yyyy') : '-'}
                         </TableCell>
@@ -328,16 +395,70 @@ export default function Payments() {
               <DialogTitle>{selectedPayment ? 'Edit Payment' : 'Add New Payment'}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Party Type *</Label>
+                  <Select value={formData.party_type} onValueChange={(v) => handleSelectChange('party_type', v)}>
+                    <SelectTrigger data-testid="party-type-select">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="owner">Owner</SelectItem>
+                      <SelectItem value="tenant">Tenant</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>{formData.party_type === 'owner' ? 'Owner' : 'Tenant'} *</Label>
+                  <Popover open={partyComboboxOpen} onOpenChange={setPartyComboboxOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={partyComboboxOpen}
+                        className="w-full justify-between font-normal"
+                        data-testid="party-select"
+                      >
+                        <span className={cn(!formData.party_id && 'text-muted-foreground')}>
+                          {selectedParty ? getPartyDisplayName(selectedParty) : `Select ${formData.party_type}`}
+                        </span>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder={`Search ${formData.party_type} by name...`} />
+                        <CommandList>
+                          <CommandEmpty>No {formData.party_type} found.</CommandEmpty>
+                          <CommandGroup>
+                            {partyOptions.map((p) => (
+                              <CommandItem
+                                key={p.id}
+                                value={getPartyDisplayName(p)}
+                                onSelect={() => {
+                                  handleSelectChange('party_id', p.id);
+                                  setPartyComboboxOpen(false);
+                                }}
+                              >
+                                {getPartyDisplayName(p)}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
               <div className="space-y-2">
-                <Label htmlFor="owner_id">Owner *</Label>
-                <Select value={formData.owner_id} onValueChange={(value) => handleSelectChange('owner_id', value)}>
-                  <SelectTrigger data-testid="owner-select">
-                    <SelectValue placeholder="Select owner" />
+                <Label>Transaction Type *</Label>
+                <Select value={formData.transaction_type} onValueChange={(v) => handleSelectChange('transaction_type', v)}>
+                  <SelectTrigger data-testid="transaction-type-select">
+                    <SelectValue placeholder="Select transaction type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {owners.map((owner) => (
-                      <SelectItem key={owner.id} value={owner.id}>{owner.name} - {owner.flat_number}</SelectItem>
-                    ))}
+                    <SelectItem value="credit">Credited to Account</SelectItem>
+                    <SelectItem value="debit">Debited from Account</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

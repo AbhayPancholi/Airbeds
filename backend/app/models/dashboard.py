@@ -10,6 +10,7 @@ class DashboardStats(BaseModel):
     pending_notices: int
     monthly_payments: float
     monthly_expenses: float
+    monthly_invested: float
     recent_tenants: List[dict]
     recent_notices: List[dict]
     recent_expenses: List[dict]

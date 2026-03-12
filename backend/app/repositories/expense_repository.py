@@ -29,19 +29,47 @@ class ExpenseRepository:
         self,
         *,
         month: Optional[str] = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
         skip: int = 0,
         limit: int = 10,
     ) -> List[ExpenseResponse]:
-        query = {}
-        if month:
+        query: dict = {}
+        if from_date or to_date:
+            range_q: dict = {}
+            if from_date:
+                range_q["$gte"] = from_date
+            if to_date:
+                range_q["$lte"] = to_date
+            query["date"] = range_q
+        elif month:
             query["date"] = {"$regex": f"^{month}"}
         cursor = self._coll.find(query, {"_id": 0}).skip(skip).limit(limit)
         items = await cursor.to_list(limit)
         return [ExpenseResponse(**e) for e in items]
 
-    async def monthly_total(self, month: str) -> float:
+    async def monthly_total(
+        self,
+        month: Optional[str] = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
+    ) -> float:
+        if from_date or to_date:
+            match: dict = {}
+            range_q: dict = {}
+            if from_date:
+                range_q["$gte"] = from_date
+            if to_date:
+                range_q["$lte"] = to_date
+            match["date"] = range_q
+        else:
+            # Fallback to month prefix match
+            if not month:
+                return 0
+            match = {"date": {"$regex": f"^{month}"}}
+
         pipeline = [
-            {"$match": {"date": {"$regex": f"^{month}"}}},
+            {"$match": match},
             {"$group": {"_id": None, "total": {"$sum": "$amount"}}},
         ]
         result = await self._coll.aggregate(pipeline).to_list(1)

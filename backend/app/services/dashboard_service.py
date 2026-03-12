@@ -9,7 +9,8 @@ from app.models.dashboard import DashboardStats
 class DashboardService:
     def __init__(self, db: AsyncIOMotorDatabase) -> None:
         self._db = db
-        self._limit = DashboardLimits.RECENT_ITEMS_LIMIT
+        # Only show the latest item in each \"recent\" card on the dashboard
+        self._limit = 1
 
     async def get_stats(self) -> DashboardStats:
         current_month = get_current_month()
@@ -19,25 +20,36 @@ class DashboardService:
         notices = self._db[CollectionNames.NOTICES]
         payments = self._db[CollectionNames.PAYMENTS]
         expenses = self._db[CollectionNames.EXPENSES]
+        investments = self._db[CollectionNames.COMPANY_INVESTMENTS]
 
         total_tenants = await tenants.count_documents({})
         total_owners = await owners.count_documents({})
         active_agreements = await agreements.count_documents({"status": AgreementStatus.ACTIVE})
         pending_notices = await notices.count_documents({})
 
+        # Total income: only credits to account (exclude debits)
         payment_pipeline = [
-            {"$match": {"month": current_month}},
+            {"$match": {"month": current_month, "transaction_type": "credit"}},
             {"$group": {"_id": None, "total": {"$sum": "$amount_paid"}}},
         ]
         payment_result = await payments.aggregate(payment_pipeline).to_list(1)
         monthly_payments = payment_result[0]["total"] if payment_result else 0
 
+        # Total expenses (all expense documents for current month)
         expense_pipeline = [
             {"$match": {"date": {"$regex": f"^{current_month}"}}},
             {"$group": {"_id": None, "total": {"$sum": "$amount"}}},
         ]
         expense_result = await expenses.aggregate(expense_pipeline).to_list(1)
         monthly_expenses = expense_result[0]["total"] if expense_result else 0
+
+        # Total invested amount for the month (sum of investment amounts)
+        investment_pipeline = [
+            {"$match": {"date": {"$regex": f"^{current_month}"}}},
+            {"$group": {"_id": None, "total": {"$sum": "$amount"}}},
+        ]
+        investment_result = await investments.aggregate(investment_pipeline).to_list(1)
+        monthly_invested = investment_result[0]["total"] if investment_result else 0
 
         recent_tenants = (
             await tenants.find(
@@ -83,6 +95,7 @@ class DashboardService:
             pending_notices=pending_notices,
             monthly_payments=monthly_payments,
             monthly_expenses=monthly_expenses,
+            monthly_invested=monthly_invested,
             recent_tenants=recent_tenants,
             recent_notices=recent_notices,
             recent_expenses=recent_expenses,

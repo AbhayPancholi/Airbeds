@@ -90,6 +90,8 @@ export const policeVerificationsAPI = {
   create: (data) => api.post('/police-verifications', data),
   update: (id, data) => api.put(`/police-verifications/${id}`, data),
   delete: (id) => api.delete(`/police-verifications/${id}`),
+  downloadDocument: (id) =>
+    api.get(`/police-verifications/${id}/download-document`, { responseType: 'blob' }),
 };
 
 // Payments API
@@ -99,7 +101,7 @@ export const paymentsAPI = {
   create: (data) => api.post('/payments', data),
   update: (id, data) => api.put(`/payments/${id}`, data),
   delete: (id) => api.delete(`/payments/${id}`),
-  getMonthlyTotal: (month) => api.get('/payments/monthly-total', { params: { month } }),
+  getMonthlyTotal: (params) => api.get('/payments/monthly-total', { params }),
 };
 
 // Expenses API
@@ -109,12 +111,23 @@ export const expensesAPI = {
   create: (data) => api.post('/expenses', data),
   update: (id, data) => api.put(`/expenses/${id}`, data),
   delete: (id) => api.delete(`/expenses/${id}`),
-  getMonthlyTotal: (month) => api.get('/expenses/monthly-total', { params: { month } }),
+  getMonthlyTotal: (params) => api.get('/expenses/monthly-total', { params }),
 };
 
 // Dashboard API
 export const dashboardAPI = {
   getStats: () => api.get('/dashboard/stats'),
+};
+
+// Company (bank accounts & investments) API
+export const companyAPI = {
+  listAccounts: () => api.get('/company/accounts'),
+  getAccount: (id) => api.get(`/company/accounts/${id}`),
+  createAccount: (data) => api.post('/company/accounts', data),
+  updateAccount: (id, data) => api.put(`/company/accounts/${id}`, data),
+  listInvestments: (params = {}) =>
+    api.get('/company/investments', { params }),
+  addInvestment: (data) => api.post('/company/investments', data),
 };
 
 // Registration links (public form link): admin creates; public validates/submits

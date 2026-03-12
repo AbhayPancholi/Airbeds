@@ -12,20 +12,24 @@ class CollectionNames:
     POLICE_VERIFICATIONS = "police_verifications"
     PAYMENTS = "payments"
     EXPENSES = "expenses"
+    COMPANY_ACCOUNTS = "company_accounts"
+    COMPANY_INVESTMENTS = "company_investments"
 
     @classmethod
     def all(cls) -> Tuple[str, ...]:
         return (
             cls.ADMINS,
             cls.OWNERS,
-        cls.TENANTS,
-        cls.REGISTRATION_LINKS,
-        cls.NOTICES,
-        cls.NOTICE_FORM_SETTINGS,
-        cls.AGREEMENTS,
+            cls.TENANTS,
+            cls.REGISTRATION_LINKS,
+            cls.NOTICES,
+            cls.NOTICE_FORM_SETTINGS,
+            cls.AGREEMENTS,
             cls.POLICE_VERIFICATIONS,
             cls.PAYMENTS,
             cls.EXPENSES,
+            cls.COMPANY_ACCOUNTS,
+            cls.COMPANY_INVESTMENTS,
         )
 
 

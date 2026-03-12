@@ -26,17 +26,26 @@ class ExpenseService:
         self,
         *,
         month: Optional[str] = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
         page: int = 1,
         limit: int = 10,
     ) -> List[ExpenseResponse]:
         skip = (page - 1) * limit
-        return await self._repo.list(month=month, skip=skip, limit=limit)
+        return await self._repo.list(
+            month=month, from_date=from_date, to_date=to_date, skip=skip, limit=limit
+        )
 
-    async def monthly_total(self, month: Optional[str] = None) -> dict:
-        if not month:
+    async def monthly_total(
+        self,
+        month: Optional[str] = None,
+        from_date: Optional[str] = None,
+        to_date: Optional[str] = None,
+    ) -> dict:
+        if not (from_date or to_date) and not month:
             month = get_current_month()
-        total = await self._repo.monthly_total(month)
-        return {"month": month, "total": total}
+        total = await self._repo.monthly_total(month=month, from_date=from_date, to_date=to_date)
+        return {"month": month, "from_date": from_date, "to_date": to_date, "total": total}
 
     async def update(self, expense_id: str, data: ExpenseUpdate) -> ExpenseResponse:
         updated = await self._repo.update(expense_id, data)

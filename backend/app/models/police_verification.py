@@ -5,9 +5,9 @@ from pydantic import BaseModel
 
 class PoliceVerificationCreate(BaseModel):
     tenant_id: str
-    employer_details: str
-    local_address: str
-    emergency_contact: str
+    employer_details: Optional[str] = None
+    local_address: Optional[str] = None
+    emergency_contact: Optional[str] = None
     photograph: Optional[str] = None  # Base64 encoded
     id_proof: Optional[str] = None  # Base64 encoded
 
@@ -25,9 +25,9 @@ class PoliceVerificationResponse(BaseModel):
     id: str
     tenant_id: str
     tenant_name: Optional[str] = None
-    employer_details: str
-    local_address: str
-    emergency_contact: str
+    employer_details: Optional[str] = None
+    local_address: Optional[str] = None
+    emergency_contact: Optional[str] = None
     photograph: Optional[str] = None
     id_proof: Optional[str] = None
     created_at: str

@@ -13,7 +13,8 @@ import {
   CreditCard,
   Receipt,
   ArrowRight,
-  TrendingUp
+  TrendingUp,
+  PiggyBank,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -110,6 +111,10 @@ export default function Dashboard() {
   }
 
   const currentMonth = format(new Date(), 'MMMM yyyy');
+  const totalIncome = stats?.monthly_payments || 0;
+  const totalExpenses = stats?.monthly_expenses || 0;
+  const totalInvested = stats?.monthly_invested || 0;
+  const netProfit = totalIncome + totalInvested - totalExpenses;
 
   return (
     <Layout>
@@ -151,18 +156,32 @@ export default function Dashboard() {
             link="/notices"
           />
           <StatCard
+            title={`Invested (${currentMonth})`}
+            value={formatCurrency(totalInvested)}
+            icon={PiggyBank}
+            color="bg-emerald-600"
+            link="/profile/bank-investments"
+          />
+          <StatCard
             title={`Payments (${currentMonth})`}
-            value={formatCurrency(stats?.monthly_payments || 0)}
+            value={formatCurrency(totalIncome)}
             icon={CreditCard}
             color="bg-blue-500"
             link="/payments"
           />
           <StatCard
             title={`Expenses (${currentMonth})`}
-            value={formatCurrency(stats?.monthly_expenses || 0)}
+            value={formatCurrency(totalExpenses)}
             icon={Receipt}
             color="bg-red-500"
             link="/expenses"
+          />
+          <StatCard
+            title={`Net Profit / Loss (${currentMonth})`}
+            value={formatCurrency(netProfit)}
+            icon={TrendingUp}
+            color={netProfit >= 0 ? "bg-emerald-500" : "bg-rose-500"}
+            link="/dashboard"
           />
         </div>
 
@@ -264,7 +283,7 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-semibold">Monthly Summary - {currentMonth}</h3>
                 <p className="text-slate-300 mt-1">
-                  Total Income: {formatCurrency(stats?.monthly_payments || 0)} | Total Expenses: {formatCurrency(stats?.monthly_expenses || 0)}
+                  Invested: {formatCurrency(totalInvested)} | Total Income: {formatCurrency(totalIncome)} | Total Expenses: {formatCurrency(totalExpenses)} | Net: {formatCurrency(netProfit)}
                 </p>
               </div>
             </div>

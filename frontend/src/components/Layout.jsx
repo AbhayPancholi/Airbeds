@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import {
   LayoutDashboard,
   Users,
@@ -16,19 +17,36 @@ import {
   Shield,
   Menu,
   X,
-  Building2
+  Building2,
+  User,
+  ChevronDown,
+  Landmark,
 } from 'lucide-react';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/tenants', label: 'Tenants', icon: Users },
   { path: '/owners', label: 'Owners', icon: Home },
-  { path: '/agreements', label: 'Agreements', icon: FileText },
-  { path: '/police-verification', label: 'Police Verification', icon: Shield },
-  { path: '/payments', label: 'Payments', icon: CreditCard },
-  { path: '/expenses', label: 'Expenses', icon: Receipt },
-  { path: '/notices', label: 'Leave Notices', icon: Bell },
+  { path: '/transactions', label: 'Transactions', icon: CreditCard },
 ];
+
+const tenantsSection = {
+  label: 'Tenants',
+  icon: Users,
+  children: [
+    { path: '/tenants', label: 'Occupancy Details', icon: Users },
+    { path: '/tenants/agreements', label: 'Agreements', icon: FileText },
+    { path: '/tenants/notices', label: 'Leave Notices', icon: Bell },
+    { path: '/tenants/police-verification', label: 'Police Verification', icon: Shield },
+  ],
+};
+
+const profileSection = {
+  label: 'Profile',
+  icon: User,
+  children: [
+    { path: '/profile/bank-investments', label: 'Bank & Investments', icon: Landmark },
+  ],
+};
 
 export const Layout = ({ children }) => {
   const { admin, logout } = useAuth();
@@ -42,6 +60,20 @@ export const Layout = ({ children }) => {
   };
 
   const isActive = (path) => location.pathname === path;
+  const isTenantsActive = tenantsSection.children.some(
+    (c) => location.pathname.startsWith(c.path) || location.pathname === c.path
+  );
+  const isProfileActive = profileSection.children.some(
+    (c) => location.pathname.startsWith(c.path) || location.pathname === c.path
+  );
+  const [tenantsOpen, setTenantsOpen] = useState(isTenantsActive);
+  const [profileOpen, setProfileOpen] = useState(isProfileActive);
+  const TenantsIcon = tenantsSection.icon;
+  const ProfileIcon = profileSection.icon;
+  useEffect(() => {
+    if (isTenantsActive) setTenantsOpen(true);
+    if (isProfileActive) setProfileOpen(true);
+  }, [isTenantsActive, isProfileActive]);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -93,7 +125,7 @@ export const Layout = ({ children }) => {
                     key={item.path}
                     to={item.path}
                     onClick={() => setSidebarOpen(false)}
-                    data-testid={`nav-${item.label.toLowerCase().replace(' ', '-')}`}
+                    data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                       isActive(item.path)
                         ? 'bg-slate-900 text-white'
@@ -105,6 +137,89 @@ export const Layout = ({ children }) => {
                   </Link>
                 );
               })}
+              {/* Tenants Section */}
+              <Collapsible open={tenantsOpen} onOpenChange={setTenantsOpen} className="mt-1">
+                <CollapsibleTrigger
+                  className={`flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    isTenantsActive
+                      ? 'bg-slate-100 text-slate-900'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <span className="flex items-center gap-3">
+                    <TenantsIcon className="h-5 w-5" />
+                    {tenantsSection.label}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${tenantsOpen ? 'rotate-180' : ''}`}
+                  />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="pl-8 pr-2 py-1 space-y-0.5">
+                    {tenantsSection.children.map((child) => {
+                      const ChildIcon = child.icon;
+                      return (
+                        <Link
+                          key={child.path}
+                          to={child.path}
+                          onClick={() => setSidebarOpen(false)}
+                          data-testid={`nav-${child.label.toLowerCase().replace(/\s+/g, '-')}`}
+                          className={`flex items-center gap-2 py-2 rounded-md text-sm font-medium transition-colors ${
+                            isActive(child.path)
+                              ? 'bg-slate-900 text-white'
+                              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                          }`}
+                        >
+                          <ChildIcon className="h-4 w-4" />
+                          {child.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+              <Collapsible open={profileOpen} onOpenChange={setProfileOpen} className="mt-1">
+                <CollapsibleTrigger
+                  className={`flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    isProfileActive
+                      ? 'bg-slate-100 text-slate-900'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <span className="flex items-center gap-3">
+                    <ProfileIcon className="h-5 w-5" />
+                    {profileSection.label}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${profileOpen ? 'rotate-180' : ''}`}
+                  />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="pl-8 pr-2 py-1 space-y-0.5">
+                    {profileSection.children.map((child) => {
+                      const ChildIcon = child.icon;
+                      return (
+                        <Link
+                          key={child.path}
+                          to={child.path}
+                          onClick={() => setSidebarOpen(false)}
+                          data-testid={`nav-${child.label.toLowerCase().replace(/\s+/g, '-')}`}
+                          className={`flex items-center gap-2 py-2 rounded-md text-sm font-medium transition-colors ${
+                            isActive(child.path)
+                              ? 'bg-slate-900 text-white'
+                              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                          }`}
+                        >
+                          <ChildIcon className="h-4 w-4" />
+                          {child.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             </nav>
           </ScrollArea>
 

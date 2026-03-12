@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 
 const initialFormState = {
   expense_type: '',
+  other_type_specify: '',
   amount: '',
   date: '',
   description: ''
@@ -34,23 +35,12 @@ const expenseTypes = [
   'Other'
 ];
 
-const getMonthOptions = () => {
-  const options = [];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const value = format(date, 'yyyy-MM');
-    const label = format(date, 'MMMM yyyy');
-    options.push({ value, label });
-  }
-  return options;
-};
-
 export default function Expenses() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [filterMonth, setFilterMonth] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
   const [monthlyTotal, setMonthlyTotal] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -58,22 +48,21 @@ export default function Expenses() {
   const [formData, setFormData] = useState(initialFormState);
   const [saving, setSaving] = useState(false);
 
-  const monthOptions = getMonthOptions();
-
   useEffect(() => {
     fetchExpenses();
-  }, [page, filterMonth]);
+  }, [page, fromDate, toDate]);
 
   useEffect(() => {
-    if (filterMonth) {
+    if (fromDate || toDate) {
       fetchMonthlyTotal();
     }
-  }, [filterMonth]);
+  }, [fromDate, toDate]);
 
   const fetchExpenses = async () => {
     try {
       const params = { page, limit: 10 };
-      if (filterMonth) params.month = filterMonth;
+      if (fromDate) params.from_date = fromDate;
+      if (toDate) params.to_date = toDate;
       
       const response = await expensesAPI.get(params);
       setExpenses(response.data);
@@ -86,7 +75,10 @@ export default function Expenses() {
 
   const fetchMonthlyTotal = async () => {
     try {
-      const response = await expensesAPI.getMonthlyTotal(filterMonth);
+      const response = await expensesAPI.getMonthlyTotal({
+        from_date: fromDate || undefined,
+        to_date: toDate || undefined,
+      });
       setMonthlyTotal(response.data.total);
     } catch (error) {
       console.error('Failed to load monthly total');
@@ -107,9 +99,15 @@ export default function Expenses() {
     setSaving(true);
 
     try {
+      let expenseType = formData.expense_type;
+      if (expenseType === 'Other' && (formData.other_type_specify || '').trim()) {
+        expenseType = `Other - ${formData.other_type_specify.trim()}`;
+      }
       const data = {
-        ...formData,
-        amount: parseFloat(formData.amount)
+        expense_type: expenseType,
+        amount: parseFloat(formData.amount),
+        date: formData.date,
+        description: formData.description || null
       };
 
       if (selectedExpense) {
@@ -123,7 +121,7 @@ export default function Expenses() {
       setSelectedExpense(null);
       setFormData(initialFormState);
       fetchExpenses();
-      if (filterMonth) fetchMonthlyTotal();
+      if (fromDate || toDate) fetchMonthlyTotal();
     } catch (error) {
       const errorMessage = typeof error.response?.data?.detail === 'string' 
         ? error.response.data.detail 
@@ -136,8 +134,15 @@ export default function Expenses() {
 
   const handleEdit = (expense) => {
     setSelectedExpense(expense);
+    let expenseType = expense.expense_type || '';
+    let otherSpecify = '';
+    if (expenseType.startsWith('Other - ')) {
+      otherSpecify = expenseType.slice(8).trim();
+      expenseType = 'Other';
+    }
     setFormData({
-      expense_type: expense.expense_type,
+      expense_type: expenseType,
+      other_type_specify: otherSpecify,
       amount: expense.amount.toString(),
       date: expense.date,
       description: expense.description || ''
@@ -152,7 +157,7 @@ export default function Expenses() {
       setDeleteDialogOpen(false);
       setSelectedExpense(null);
       fetchExpenses();
-      if (filterMonth) fetchMonthlyTotal();
+      if (fromDate || toDate) fetchMonthlyTotal();
     } catch (error) {
       toast.error('Failed to delete expense');
     }
@@ -172,7 +177,8 @@ export default function Expenses() {
   };
 
   const clearFilters = () => {
-    setFilterMonth('');
+    setFromDate('');
+    setToDate('');
     setMonthlyTotal(0);
   };
 
@@ -189,7 +195,8 @@ export default function Expenses() {
       'Legal': 'bg-slate-100 text-slate-700',
       'Other': 'bg-gray-100 text-gray-700'
     };
-    return colors[type] || 'bg-gray-100 text-gray-700';
+    const baseType = type && type.startsWith('Other - ') ? 'Other' : type;
+    return colors[baseType] || 'bg-gray-100 text-gray-700';
   };
 
   return (
@@ -212,17 +219,22 @@ export default function Expenses() {
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row gap-4 items-end">
               <div className="flex-1">
-                <Label className="text-sm text-slate-500 mb-2 block">Filter by Month</Label>
-                <Select value={filterMonth} onValueChange={setFilterMonth}>
-                  <SelectTrigger data-testid="filter-month-select">
-                    <SelectValue placeholder="All months" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {monthOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm text-slate-500 mb-2 block">From Date</Label>
+                <Input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  data-testid="filter-from-date"
+                />
+              </div>
+              <div className="flex-1">
+                <Label className="text-sm text-slate-500 mb-2 block">To Date</Label>
+                <Input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  data-testid="filter-to-date"
+                />
               </div>
               <Button variant="outline" onClick={clearFilters}>
                 Clear Filters
@@ -231,13 +243,13 @@ export default function Expenses() {
           </CardContent>
         </Card>
 
-        {/* Monthly Total Card */}
-        {filterMonth && (
+        {/* Total Card */}
+        {(fromDate || toDate) && (
           <Card className="bg-gradient-to-r from-red-500 to-red-600 text-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-red-100 text-sm font-medium">Monthly Total Expenses</p>
+                  <p className="text-red-100 text-sm font-medium">Total Expenses (Selected Period)</p>
                   <p className="text-3xl font-bold mt-1">{formatCurrency(monthlyTotal)}</p>
                 </div>
                 <Receipt className="h-10 w-10 text-red-200" />
@@ -339,6 +351,19 @@ export default function Expenses() {
                   </SelectContent>
                 </Select>
               </div>
+              {formData.expense_type === 'Other' && (
+                <div className="space-y-2">
+                  <Label htmlFor="other_type_specify">Specify expense type</Label>
+                  <Input
+                    id="other_type_specify"
+                    name="other_type_specify"
+                    value={formData.other_type_specify}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Office supplies, Miscellaneous"
+                    data-testid="other-type-input"
+                  />
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="amount">Amount *</Label>

@@ -15,6 +15,13 @@ from app.models.expense import (
     ExpenseResponse,
     ExpenseUpdate,
 )
+from app.models.company import (
+    BankAccountCreate,
+    BankAccountUpdate,
+    BankAccountResponse,
+    InvestmentCreate,
+    InvestmentResponse,
+)
 from app.models.notice import (
     NoticeCreate,
     NoticeResponse,
@@ -67,5 +74,10 @@ __all__ = [
     "ExpenseCreate",
     "ExpenseUpdate",
     "ExpenseResponse",
+    "BankAccountCreate",
+    "BankAccountUpdate",
+    "BankAccountResponse",
+    "InvestmentCreate",
+    "InvestmentResponse",
     "DashboardStats",
 ]

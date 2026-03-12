@@ -14,9 +14,11 @@ from app.services.notice_service import NoticeService
 from app.services.agreement_service import AgreementService
 from app.services.agreement_document_service import AgreementDocumentService
 from app.services.police_verification_service import PoliceVerificationService
+from app.services.police_verification_document_service import PoliceVerificationDocumentService
 from app.services.payment_service import PaymentService
 from app.services.expense_service import ExpenseService
 from app.services.dashboard_service import DashboardService
+from app.services.company_service import CompanyService
 from app.services.registration_link_service import RegistrationLinkService
 from app.repositories.notice_repository import NoticeRepository
 from app.repositories.notice_form_settings_repository import NoticeFormSettingsRepository
@@ -75,6 +77,13 @@ def get_payment_service(request: Request) -> PaymentService:
     return PaymentService(db)
 
 
+def get_police_verification_document_service(
+    request: Request,
+) -> PoliceVerificationDocumentService:
+    db = request.app.state.db.get_database()
+    return PoliceVerificationDocumentService(db)
+
+
 def get_expense_service(request: Request) -> ExpenseService:
     db = request.app.state.db.get_database()
     return ExpenseService(db)
@@ -96,6 +105,11 @@ def get_notice_form_service(request: Request) -> NoticeFormService:
     settings_repo = NoticeFormSettingsRepository(db)
     tenant_repo = TenantRepository(db)
     return NoticeFormService(notice_repo=notice_repo, settings_repo=settings_repo, tenant_repo=tenant_repo)
+
+
+def get_company_service(request: Request) -> CompanyService:
+    db = request.app.state.db.get_database()
+    return CompanyService(db)
 
 
 async def get_current_admin(

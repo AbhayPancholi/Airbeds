@@ -10,6 +10,8 @@ import Agreements from './pages/Agreements';
 import PoliceVerification from './pages/PoliceVerification';
 import Payments from './pages/Payments';
 import Expenses from './pages/Expenses';
+import Transactions from './pages/Transactions';
+import CompanyDetails from './pages/CompanyDetails';
 import Notices from './pages/Notices';
 import NoticeForm from './pages/NoticeForm';
 import Register from './pages/Register';
@@ -24,11 +26,20 @@ function App() {
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/tenants" element={<PrivateRoute><Tenants /></PrivateRoute>} />
           <Route path="/owners" element={<PrivateRoute><Owners /></PrivateRoute>} />
-          <Route path="/agreements" element={<PrivateRoute><Agreements /></PrivateRoute>} />
-          <Route path="/police-verification" element={<PrivateRoute><PoliceVerification /></PrivateRoute>} />
-          <Route path="/payments" element={<PrivateRoute><Payments /></PrivateRoute>} />
-          <Route path="/expenses" element={<PrivateRoute><Expenses /></PrivateRoute>} />
-          <Route path="/notices" element={<PrivateRoute><Notices /></PrivateRoute>} />
+          {/* Tenant-scoped flows */}
+          <Route path="/tenants/agreements" element={<PrivateRoute><Agreements /></PrivateRoute>} />
+          <Route path="/tenants/police-verification" element={<PrivateRoute><PoliceVerification /></PrivateRoute>} />
+          <Route path="/tenants/notices" element={<PrivateRoute><Notices /></PrivateRoute>} />
+          {/* Backwards compatibility redirects */}
+          <Route path="/agreements" element={<Navigate to="/tenants/agreements" replace />} />
+          <Route path="/police-verification" element={<Navigate to="/tenants/police-verification" replace />} />
+          <Route path="/transactions" element={<PrivateRoute><Transactions /></PrivateRoute>} />
+          {/* Legacy routes redirect to transactions */}
+          <Route path="/payments" element={<Navigate to="/transactions" replace />} />
+          <Route path="/expenses" element={<Navigate to="/transactions" replace />} />
+          <Route path="/profile/bank-investments" element={<PrivateRoute><CompanyDetails /></PrivateRoute>} />
+          <Route path="/company" element={<Navigate to="/profile/bank-investments" replace />} />
+          <Route path="/notices" element={<Navigate to="/tenants/notices" replace />} />
           <Route path="/register/:token" element={<Register />} />
           <Route path="/notice" element={<NoticeForm />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
