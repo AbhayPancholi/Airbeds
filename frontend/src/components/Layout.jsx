@@ -25,9 +25,17 @@ import {
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/owners', label: 'Owners', icon: Home },
-  { path: '/transactions', label: 'Transactions', icon: CreditCard },
+  { path: '/expenses', label: 'Expenses', icon: Receipt },
 ];
+
+const ownersSection = {
+  label: 'Owners',
+  icon: Home,
+  children: [
+    { path: '/owners', label: 'Owner List', icon: Home },
+    { path: '/owners/payments', label: 'Payments', icon: CreditCard },
+  ],
+};
 
 const tenantsSection = {
   label: 'Tenants',
@@ -37,6 +45,7 @@ const tenantsSection = {
     { path: '/tenants/agreements', label: 'Agreements', icon: FileText },
     { path: '/tenants/notices', label: 'Leave Notices', icon: Bell },
     { path: '/tenants/police-verification', label: 'Police Verification', icon: Shield },
+    { path: '/tenants/payments', label: 'Payments', icon: CreditCard },
   ],
 };
 
@@ -60,20 +69,26 @@ export const Layout = ({ children }) => {
   };
 
   const isActive = (path) => location.pathname === path;
+  const isOwnersActive = ownersSection.children.some(
+    (c) => location.pathname.startsWith(c.path) || location.pathname === c.path
+  );
   const isTenantsActive = tenantsSection.children.some(
     (c) => location.pathname.startsWith(c.path) || location.pathname === c.path
   );
   const isProfileActive = profileSection.children.some(
     (c) => location.pathname.startsWith(c.path) || location.pathname === c.path
   );
+  const [ownersOpen, setOwnersOpen] = useState(isOwnersActive);
   const [tenantsOpen, setTenantsOpen] = useState(isTenantsActive);
   const [profileOpen, setProfileOpen] = useState(isProfileActive);
+  const OwnersIcon = ownersSection.icon;
   const TenantsIcon = tenantsSection.icon;
   const ProfileIcon = profileSection.icon;
   useEffect(() => {
+    if (isOwnersActive) setOwnersOpen(true);
     if (isTenantsActive) setTenantsOpen(true);
     if (isProfileActive) setProfileOpen(true);
-  }, [isTenantsActive, isProfileActive]);
+  }, [isOwnersActive, isTenantsActive, isProfileActive]);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -137,6 +152,48 @@ export const Layout = ({ children }) => {
                   </Link>
                 );
               })}
+              {/* Owners Section */}
+              <Collapsible open={ownersOpen} onOpenChange={setOwnersOpen} className="mt-1">
+                <CollapsibleTrigger
+                  className={`flex w-full items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    isOwnersActive
+                      ? 'bg-slate-100 text-slate-900'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <span className="flex items-center gap-3">
+                    <OwnersIcon className="h-5 w-5" />
+                    {ownersSection.label}
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${ownersOpen ? 'rotate-180' : ''}`}
+                  />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="pl-8 pr-2 py-1 space-y-0.5">
+                    {ownersSection.children.map((child) => {
+                      const ChildIcon = child.icon;
+                      return (
+                        <Link
+                          key={child.path}
+                          to={child.path}
+                          onClick={() => setSidebarOpen(false)}
+                          data-testid={`nav-${child.label.toLowerCase().replace(/\s+/g, '-')}`}
+                          className={`flex items-center gap-2 py-2 rounded-md text-sm font-medium transition-colors ${
+                            isActive(child.path)
+                              ? 'bg-slate-900 text-white'
+                              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                          }`}
+                        >
+                          <ChildIcon className="h-4 w-4" />
+                          {child.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
               {/* Tenants Section */}
               <Collapsible open={tenantsOpen} onOpenChange={setTenantsOpen} className="mt-1">
                 <CollapsibleTrigger

@@ -37,6 +37,7 @@ def _doc_to_response(doc: Dict[str, Any]) -> OwnerResponse:
 class OwnerRepository:
     def __init__(self, db: AsyncIOMotorDatabase) -> None:
         self._coll = db[CollectionNames.OWNERS]
+        self._tenants = db[CollectionNames.TENANTS]
 
     async def create(self, data: OwnerCreate) -> OwnerResponse:
         owner_id = str(uuid.uuid4())
@@ -83,11 +84,30 @@ class OwnerRepository:
             ]
         cursor = self._coll.find(query, {"_id": 0}).skip(skip).limit(limit)
         items = await cursor.to_list(limit)
+        owner_ids = [o["id"] for o in items]
+        count_map = await self._tenant_counts_by_owner(owner_ids)
+        for o in items:
+            o["tenant_count"] = count_map.get(o["id"], 0)
         return [_doc_to_response(o) for o in items]
+
+    async def _tenant_counts_by_owner(self, owner_ids: List[str]) -> Dict[str, int]:
+        """Return map of owner_id -> tenant count for the given owner ids."""
+        if not owner_ids:
+            return {}
+        pipeline = [
+            {"$match": {"owner_id": {"$in": owner_ids}}},
+            {"$group": {"_id": "$owner_id", "count": {"$sum": 1}}},
+        ]
+        result = await self._tenants.aggregate(pipeline).to_list(len(owner_ids))
+        return {r["_id"]: r["count"] for r in result}
 
     async def list_all(self, limit: int = 1000) -> List[OwnerResponse]:
         cursor = self._coll.find({}, {"_id": 0}).limit(limit)
         items = await cursor.to_list(limit)
+        owner_ids = [o["id"] for o in items]
+        count_map = await self._tenant_counts_by_owner(owner_ids)
+        for o in items:
+            o["tenant_count"] = count_map.get(o["id"], 0)
         return [_doc_to_response(o) for o in items]
 
     async def update(self, owner_id: str, data: OwnerUpdate) -> Optional[OwnerResponse]:

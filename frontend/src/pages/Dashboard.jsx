@@ -112,9 +112,10 @@ export default function Dashboard() {
 
   const currentMonth = format(new Date(), 'MMMM yyyy');
   const totalIncome = stats?.monthly_payments || 0;
+  const totalDebits = stats?.monthly_debits || 0;
   const totalExpenses = stats?.monthly_expenses || 0;
   const totalInvested = stats?.monthly_invested || 0;
-  const netProfit = totalIncome + totalInvested - totalExpenses;
+  const netProfit = totalIncome + totalInvested - totalExpenses - totalDebits;
 
   return (
     <Layout>
@@ -163,11 +164,18 @@ export default function Dashboard() {
             link="/profile/bank-investments"
           />
           <StatCard
-            title={`Payments (${currentMonth})`}
+            title={`Credits (${currentMonth})`}
             value={formatCurrency(totalIncome)}
             icon={CreditCard}
             color="bg-blue-500"
-            link="/payments"
+            link="/tenants/payments"
+          />
+          <StatCard
+            title={`Debits (${currentMonth})`}
+            value={formatCurrency(totalDebits)}
+            icon={CreditCard}
+            color="bg-orange-500"
+            link="/owners/payments"
           />
           <StatCard
             title={`Expenses (${currentMonth})`}
@@ -283,7 +291,7 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg font-semibold">Monthly Summary - {currentMonth}</h3>
                 <p className="text-slate-300 mt-1">
-                  Invested: {formatCurrency(totalInvested)} | Total Income: {formatCurrency(totalIncome)} | Total Expenses: {formatCurrency(totalExpenses)} | Net: {formatCurrency(netProfit)}
+                  Invested: {formatCurrency(totalInvested)} | Credits: {formatCurrency(totalIncome)} | Debits: {formatCurrency(totalDebits)} | Expenses: {formatCurrency(totalExpenses)} | Net: {formatCurrency(netProfit)}
                 </p>
               </div>
             </div>

@@ -51,10 +51,11 @@ class PaymentService:
         month: Optional[str] = None,
         from_date: Optional[str] = None,
         to_date: Optional[str] = None,
+        party_type: Optional[str] = None,
     ) -> dict:
         if not (from_date or to_date) and not month:
             month = get_current_month()
-        total = await self._repo.monthly_total(month=month, from_date=from_date, to_date=to_date)
+        total = await self._repo.monthly_total(month=month, from_date=from_date, to_date=to_date, party_type=party_type)
         return {"month": month, "from_date": from_date, "to_date": to_date, "total": total}
 
     async def update(self, payment_id: str, data: PaymentUpdate) -> PaymentResponse:

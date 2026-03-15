@@ -27,13 +27,22 @@ class DashboardService:
         active_agreements = await agreements.count_documents({"status": AgreementStatus.ACTIVE})
         pending_notices = await notices.count_documents({})
 
-        # Total income: only credits to account (exclude debits)
+        # Income & outgoing: group by transaction_type for current month
         payment_pipeline = [
-            {"$match": {"month": current_month, "transaction_type": "credit"}},
-            {"$group": {"_id": None, "total": {"$sum": "$amount_paid"}}},
+            {
+                "$match": {
+                    "$or": [
+                        {"month": current_month},
+                        {"payment_date": {"$regex": f"^{current_month}"}},
+                    ],
+                }
+            },
+            {"$group": {"_id": "$transaction_type", "total": {"$sum": "$amount_paid"}}},
         ]
-        payment_result = await payments.aggregate(payment_pipeline).to_list(1)
-        monthly_payments = payment_result[0]["total"] if payment_result else 0
+        payment_result = await payments.aggregate(payment_pipeline).to_list(10)
+        payment_by_type = {r["_id"]: r["total"] for r in payment_result}
+        monthly_payments = payment_by_type.get("credit", 0)
+        monthly_debits = payment_by_type.get("debit", 0)
 
         # Total expenses (all expense documents for current month)
         expense_pipeline = [
@@ -94,6 +103,7 @@ class DashboardService:
             active_agreements=active_agreements,
             pending_notices=pending_notices,
             monthly_payments=monthly_payments,
+            monthly_debits=monthly_debits,
             monthly_expenses=monthly_expenses,
             monthly_invested=monthly_invested,
             recent_tenants=recent_tenants,

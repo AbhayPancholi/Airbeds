@@ -172,6 +172,7 @@ class OwnerResponse(BaseModel):
     aadhaar_card_doc: Optional[str] = None
     photo: Optional[str] = None
     sign: Optional[str] = None
+    tenant_count: Optional[int] = None  # Filled when listing owners
 
     @field_validator("address", mode="before")
     @classmethod

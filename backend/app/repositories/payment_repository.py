@@ -56,6 +56,9 @@ class PaymentRepository:
         now = datetime.now(timezone.utc).isoformat()
         dump = data.model_dump(exclude_none=True)
         dump["owner_id"] = dump.get("owner_id") or data.party_id
+        # Ensure month is set for dashboard profit/loss (derive from payment_date if missing)
+        if not dump.get("month") and dump.get("payment_date"):
+            dump["month"] = dump["payment_date"][:7]  # "yyyy-mm-dd" -> "yyyy-mm"
         doc = {"id": payment_id, **dump, "created_at": now, "updated_at": now}
         await self._coll.insert_one(doc)
         doc.pop("_id", None)
@@ -125,6 +128,7 @@ class PaymentRepository:
         month: Optional[str] = None,
         from_date: Optional[str] = None,
         to_date: Optional[str] = None,
+        party_type: Optional[str] = None,
     ) -> float:
         if from_date or to_date:
             match: dict = {}
@@ -138,6 +142,13 @@ class PaymentRepository:
             if not month:
                 return 0
             match = {"month": month}
+        if party_type == "owner":
+            match["$or"] = [
+                {"party_type": "owner"},
+                {"owner_id": {"$exists": True, "$ne": ""}, "party_type": {"$exists": False}},
+            ]
+        elif party_type == "tenant":
+            match["party_type"] = "tenant"
 
         pipeline = [
             {"$match": match},

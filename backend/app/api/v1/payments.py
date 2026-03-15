@@ -48,10 +48,11 @@ async def get_monthly_payment_total(
     month: Optional[str] = None,
     from_date: Optional[str] = None,
     to_date: Optional[str] = None,
+    party_type: Optional[str] = None,
     admin: dict = Depends(get_current_admin),
     service: PaymentService = Depends(get_payment_service),
 ):
-    return await service.monthly_total(month=month, from_date=from_date, to_date=to_date)
+    return await service.monthly_total(month=month, from_date=from_date, to_date=to_date, party_type=party_type)
 
 
 @router.get("/{payment_id}", response_model=PaymentResponse)

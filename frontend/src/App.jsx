@@ -8,9 +8,9 @@ import Tenants from './pages/Tenants';
 import Owners from './pages/Owners';
 import Agreements from './pages/Agreements';
 import PoliceVerification from './pages/PoliceVerification';
-import Payments from './pages/Payments';
+import TenantPayments from './pages/TenantPayments';
+import OwnerPayments from './pages/OwnerPayments';
 import Expenses from './pages/Expenses';
-import Transactions from './pages/Transactions';
 import CompanyDetails from './pages/CompanyDetails';
 import Notices from './pages/Notices';
 import NoticeForm from './pages/NoticeForm';
@@ -30,13 +30,14 @@ function App() {
           <Route path="/tenants/agreements" element={<PrivateRoute><Agreements /></PrivateRoute>} />
           <Route path="/tenants/police-verification" element={<PrivateRoute><PoliceVerification /></PrivateRoute>} />
           <Route path="/tenants/notices" element={<PrivateRoute><Notices /></PrivateRoute>} />
+          <Route path="/tenants/payments" element={<PrivateRoute><TenantPayments /></PrivateRoute>} />
+          <Route path="/owners/payments" element={<PrivateRoute><OwnerPayments /></PrivateRoute>} />
+          <Route path="/expenses" element={<PrivateRoute><Expenses /></PrivateRoute>} />
           {/* Backwards compatibility redirects */}
           <Route path="/agreements" element={<Navigate to="/tenants/agreements" replace />} />
           <Route path="/police-verification" element={<Navigate to="/tenants/police-verification" replace />} />
-          <Route path="/transactions" element={<PrivateRoute><Transactions /></PrivateRoute>} />
-          {/* Legacy routes redirect to transactions */}
-          <Route path="/payments" element={<Navigate to="/transactions" replace />} />
-          <Route path="/expenses" element={<Navigate to="/transactions" replace />} />
+          <Route path="/transactions" element={<Navigate to="/expenses" replace />} />
+          <Route path="/payments" element={<Navigate to="/tenants/payments" replace />} />
           <Route path="/profile/bank-investments" element={<PrivateRoute><CompanyDetails /></PrivateRoute>} />
           <Route path="/company" element={<Navigate to="/profile/bank-investments" replace />} />
           <Route path="/notices" element={<Navigate to="/tenants/notices" replace />} />

@@ -415,24 +415,32 @@ export default function Owners() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Flat Number</TableHead>
-                      <TableHead>Property Address</TableHead>
+                      <TableHead>Owner Name</TableHead>
+                      <TableHead>Mobile Number</TableHead>
+                      <TableHead>Rented Flat No.</TableHead>
+                      <TableHead>Building Name</TableHead>
+                      <TableHead>Society Name</TableHead>
+                      <TableHead>Total Flats</TableHead>
+                      <TableHead>POA Name</TableHead>
+                      <TableHead>Tenant Count</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {owners.map((owner) => (
+                    {owners.map((owner) => {
+                      const firstFlat = owner.flats?.[0];
+                      const addr = firstFlat?.address;
+                      const totalFlats = (owner.flats || []).length;
+                      return (
                       <TableRow key={owner.id} data-testid={`owner-row-${owner.id}`}>
                         <TableCell className="font-medium">{owner.name}</TableCell>
-                        <TableCell>{owner.phone}</TableCell>
-                        <TableCell>{owner.email || '-'}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{owner.flat_number || '-'}</Badge>
-                        </TableCell>
-                        <TableCell className="max-w-xs truncate">{owner.property_address || '-'}</TableCell>
+                        <TableCell>{owner.phone || '-'}</TableCell>
+                        <TableCell>{addr?.flat_no || owner.flat_number || '-'}</TableCell>
+                        <TableCell>{addr?.building_no || '-'}</TableCell>
+                        <TableCell>{addr?.society || '-'}</TableCell>
+                        <TableCell>{totalFlats > 0 ? totalFlats : '-'}</TableCell>
+                        <TableCell>{owner.poa?.name?.trim() ? owner.poa.name : '-'}</TableCell>
+                        <TableCell>{owner.tenant_count != null ? owner.tenant_count : '-'}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
                             <Button variant="ghost" size="icon" onClick={() => handleView(owner)} data-testid={`view-owner-${owner.id}`}>
@@ -447,7 +455,7 @@ export default function Owners() {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ); })}
                   </TableBody>
                 </Table>
               </div>
