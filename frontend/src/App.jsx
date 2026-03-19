@@ -15,6 +15,7 @@ import CompanyDetails from './pages/CompanyDetails';
 import Notices from './pages/Notices';
 import NoticeForm from './pages/NoticeForm';
 import Register from './pages/Register';
+import OwnersRentedFlats from './pages/OwnersRentedFlats';
 import './App.css';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/tenants" element={<PrivateRoute><Tenants /></PrivateRoute>} />
           <Route path="/owners" element={<PrivateRoute><Owners /></PrivateRoute>} />
+          <Route path="/owners/rented-flats" element={<PrivateRoute><OwnersRentedFlats /></PrivateRoute>} />
           {/* Tenant-scoped flows */}
           <Route path="/tenants/agreements" element={<PrivateRoute><Agreements /></PrivateRoute>} />
           <Route path="/tenants/police-verification" element={<PrivateRoute><PoliceVerification /></PrivateRoute>} />
@@ -40,6 +42,7 @@ function App() {
           <Route path="/payments" element={<Navigate to="/tenants/payments" replace />} />
           <Route path="/profile/bank-investments" element={<PrivateRoute><CompanyDetails /></PrivateRoute>} />
           <Route path="/company" element={<Navigate to="/profile/bank-investments" replace />} />
+          <Route path="/profile/owners-rented-flats" element={<Navigate to="/owners/rented-flats" replace />} />
           <Route path="/notices" element={<Navigate to="/tenants/notices" replace />} />
           <Route path="/register/:token" element={<Register />} />
           <Route path="/notice" element={<NoticeForm />} />

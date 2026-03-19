@@ -5,6 +5,7 @@ class CollectionNames:
     ADMINS = "admins"
     OWNERS = "owners"
     TENANTS = "tenants"
+    OWNER_FLAT_DOCUMENTS = "owner_flat_documents"
     REGISTRATION_LINKS = "registration_links"
     NOTICES = "notices"
     NOTICE_FORM_SETTINGS = "notice_form_settings"
@@ -21,6 +22,7 @@ class CollectionNames:
             cls.ADMINS,
             cls.OWNERS,
             cls.TENANTS,
+            cls.OWNER_FLAT_DOCUMENTS,
             cls.REGISTRATION_LINKS,
             cls.NOTICES,
             cls.NOTICE_FORM_SETTINGS,

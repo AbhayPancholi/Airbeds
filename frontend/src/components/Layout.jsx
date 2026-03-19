@@ -34,6 +34,7 @@ const ownersSection = {
   children: [
     { path: '/owners', label: 'Owner List', icon: Home },
     { path: '/owners/payments', label: 'Payments', icon: CreditCard },
+    { path: '/owners/rented-flats', label: 'Rented Flats', icon: Home },
   ],
 };
 

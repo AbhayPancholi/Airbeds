@@ -114,6 +114,15 @@ export const expensesAPI = {
   getMonthlyTotal: (params) => api.get('/expenses/monthly-total', { params }),
 };
 
+// Owner flat PDF documents
+export const ownerFlatsAPI = {
+  listOwnerFlats: () => api.get('/owner-flats'),
+  uploadDocument: (data) => api.post('/owner-flats/documents', data),
+  downloadDocument: (doc_id) =>
+    api.get(`/owner-flats/documents/${doc_id}/download`, { responseType: 'blob' }),
+  deleteDocument: (doc_id) => api.delete(`/owner-flats/documents/${doc_id}`),
+};
+
 // Dashboard API
 export const dashboardAPI = {
   getStats: () => api.get('/dashboard/stats'),

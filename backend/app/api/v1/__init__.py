@@ -13,6 +13,7 @@ from . import (
     expenses,
     dashboard,
     company,
+    owner_flats,
 )
 
 
@@ -40,4 +41,6 @@ api_router.include_router(payments.router, prefix="/payments", tags=["payments"]
 api_router.include_router(expenses.router, prefix="/expenses", tags=["expenses"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(company.router, prefix="/company", tags=["company"])
+
+api_router.include_router(owner_flats.router, prefix="/owner-flats", tags=["owner-flats"])
 

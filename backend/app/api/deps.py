@@ -24,6 +24,7 @@ from app.repositories.notice_repository import NoticeRepository
 from app.repositories.notice_form_settings_repository import NoticeFormSettingsRepository
 from app.repositories.tenant_repository import TenantRepository
 from app.services.notice_form_service import NoticeFormService
+from app.services.owner_flat_document_service import OwnerFlatDocumentService
 
 security = HTTPBearer()
 
@@ -110,6 +111,11 @@ def get_notice_form_service(request: Request) -> NoticeFormService:
 def get_company_service(request: Request) -> CompanyService:
     db = request.app.state.db.get_database()
     return CompanyService(db)
+
+
+def get_owner_flat_document_service(request: Request) -> OwnerFlatDocumentService:
+    db = request.app.state.db.get_database()
+    return OwnerFlatDocumentService(db)
 
 
 async def get_current_admin(

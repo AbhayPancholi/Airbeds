@@ -32,6 +32,11 @@ from app.models.owner import (
     OwnerResponse,
     OwnerUpdate,
 )
+from app.models.owner_flat_document import (
+    OwnerFlatDocumentCreate,
+    OwnerFlatDocumentResponse,
+    OwnerFlatListingResponse,
+)
 from app.models.payment import (
     PaymentCreate,
     PaymentResponse,
@@ -56,6 +61,9 @@ __all__ = [
     "OwnerCreate",
     "OwnerUpdate",
     "OwnerResponse",
+    "OwnerFlatDocumentCreate",
+    "OwnerFlatDocumentResponse",
+    "OwnerFlatListingResponse",
     "TenantCreate",
     "TenantUpdate",
     "TenantResponse",
